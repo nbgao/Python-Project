@@ -37,27 +37,25 @@ reduce_data = estimator.fit_transform(X)
 model = KMeans(n_clusters=10)
 model.fit(reduce_data)
 
-'''
 # 计算聚类过程中的决策边界
-x_min, x_max = reduce_data[:, 0].min() - 1, reduce_data[:, 0].max() + 1
-y_min, y_max = reduce_data[:, 1].min() - 1, reduce_data[:, 1].max() + 1
-xx, yy = np.meshgrid(np.arange(x_min, x_max, .05), np.arange(y_min, y_max, .05))
+x_min, x_max = reduce_data[:,0].min()-1, reduce_data[:,0].max()+1
+y_min, y_max = reduce_data[:,1].min()-1, reduce_data[:,1].max()+1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.05), np.arange(y_min, y_max, 0.05))
 
 result = model.predict(np.c_[xx.ravel(), yy.ravel()])
 
-# 将决策边界绘制绘制出来
+# 将决策边界绘制出来
 result = result.reshape(xx.shape)
 
-plt.contourf(xx, yy, result, cmap=plt.cm.Greys)
-plt.scatter(reduce_data[:, 0], reduce_data[:, 1], c=y, s=15)
+plt.contour(xx, yy, result, cmap=plt.cm.Greys)
+plt.scatter(reduce_data[:,0], reduce_data[:,1], c=y, s=15)
 
 # 绘制聚类中心点
 center = model.cluster_centers_
-plt.scatter(center[:, 0], center[:, 1], marker='p', linewidths=2, color='b', edgecolors='w', zorder=20)
+plt.scatter(center[:,0], center[:,1], marker='p', linewidths=2, color='b', edgecolors='w', zorder=20)
 
 # 图像参数设置
 plt.xlim(x_min, x_max)
 plt.ylim(y_min, y_max)
 
 plt.show()
-'''
