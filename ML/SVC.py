@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+''' 线性分类器 '''
 import pandas as pd
 
 # 读取csv数据文件
@@ -34,6 +35,7 @@ print(model.score(test_feature, test_target))
 print(model2.score(test_feature, test_target))
 
 
+''' 非线性支持向量机 '''
 # 导入数据集模块
 from sklearn import datasets
 import matplotlib.pyplot as plt
