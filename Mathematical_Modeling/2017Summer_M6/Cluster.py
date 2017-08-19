@@ -104,6 +104,120 @@ plt.show()
 (c1,c2,c3)
 
 
+''' 时间序列分析 '''
+# 原始时间序列
+ts1_1 = []
+ts1_2 = []
+ts1_3 = []
+for i in range(0,len(data1)):
+    sum1_1 = sum1_2 = sum1_3 = 0
+    c1_1 = c1_2 = c1_3 = 0
+    for j in range(0,len(data1.columns)):
+        if(model_1[1][j] == 0):
+            sum1_1 += data1.ix[i,j]
+            c1_1 += 1
+        elif(model_1[1][j] == 1):
+            sum1_2 += data1.ix[i,j]
+            c1_2 += 1
+        elif(model_1[1][j] == 2):
+            sum1_3 += data1.ix[i,j]
+            c1_3 += 1
+            
+    ts1_1.append(sum1_1/c1_1)
+    ts1_2.append(sum1_2/c1_2)
+    ts1_3.append(sum1_3/c1_3)
+    if(i%500 == 0):
+        print(i)
+
+Date1 = pd.date_range('20020401','20110330')
+TS1_1 = pd.Series(ts1_1)
+TS1_1.index = Date1
+TS1_2 = pd.Series(ts1_2)
+TS1_2.index = Date1
+TS1_3 = pd.Series(ts1_3)
+TS1_3.index = Date1
+
+ax1 = plt.subplot(311)
+ax1.plot(TS1_1)
+ax1.set_xlabel('时间')
+ax1.set_ylabel('海表温度(℃)')
+ax1.set_title('东海第1类观测点海表温度时间序列曲线')
+ax2 = plt.subplot(312)
+ax2.plot(TS1_2)
+ax2.set_xlabel('时间')
+ax2.set_ylabel('海表温度(℃)')
+ax2.set_title('东海第2类观测点海表温度时间序列曲线')
+ax3 = plt.subplot(313)
+ax3.plot(TS1_3)
+ax3.set_xlabel('时间')
+ax3.set_ylabel('海表温度(℃)')
+ax3.set_title('东海第3类观测点海表温度时间序列曲线')
+plt.tight_layout()
+plt.show()
+
+
+# 时间序列分析模型
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.graphics.tsaplots import plot_pacf
+from statsmodels.tsa.stattools import adfuller as ADF
+from statsmodels.stats.diagnostic import acorr_ljungbox
+from statsmodels.tsa.arima_model import ARIMA
+
+# TS1_1 = pd.to_datetime(TS1_1.index)
+#原自相关图和偏自相关图
+ax1 = plt.subplot(2,1,1)
+ax2 = plt.subplot(2,1,2)
+plot_acf(TS1_1[:100],ax=ax1).show()       #ACF
+plot_pacf(TS1_1[:100],ax=ax2).show()      #PACF
+
+#平稳性检验
+print (u'原始序列的ADF检验结果为：',ADF(TS1_1))    
+#返回值以此为ADF、P-Value、usedlag、nobs、critical values、icbest、regresults、resstore
+
+#一阶差分后的结果
+D_TS1_1 = TS1_1.diff().dropna()
+D_TS1_1.plot(figsize = (10,4))      #差分后时间序列图
+
+ax1 = plt.subplot(2,1,1)
+ax2 = plt.subplot(2,1,2)
+plot_acf(D_TS1_1[:100],ax=ax1).show()     #一阶差分ACF
+plot_pacf(D_TS1_1[:100],ax=ax2).show()    #一阶差分PACF
+
+print (u'差分序列的ADF检验结果为：',ADF(D_TS1_1))
+
+#白噪声检验
+statics,p_value = acorr_ljungbox(D_TS1_1,lags = 1)
+print (u'差分序列的白噪声检验结果为： Q-statics = %s    p-value = %s'%(statics,p_value))  #返回统计量和p值
+
+#ARIMA差分自回归滑动平均模型
+#定阶
+
+p = 1
+q = 1
+arima1_1 = ARIMA(TS1_1,(1,1,1)).fit()  #建立ARIMA(1,1,1)模型 ARIMA(0,1,1)
+arima1_1.summary()
+
+# 预测值，预测误差，预测置信区间
+pre_a1_1, pre_b1_1, pre_c1_1 = arima1_1.forecast(365)
+plt.plot(pre_a1_1)
+pre_b1_1
+
+Date2 = pd.date_range('20020401','20110708')
+# pre_a1_1_cumsum = pre_a1_1.cumsum()
+
+pre_D_TS1_1 = arima1_1.fittedvalues
+plt.plot(D_TS1_1)
+plt.plot(pre_D_TS1_1, color='red')
+
+pre_D_TS1_1_cumsum = pre_D_TS1_1.cumsum()
+pre_TS1_1 = pd.Series(TS1_1, index = Date2)
+pre_TS1_1.add(pre_D_TS1_1_cumsum)
+plt.plot(TS1_1)
+plt.plot(pre_TS1_1)
+
+
+
+
 ''' K值选择与聚类评估 '''
 # 横坐标数组
 index = []
@@ -262,6 +376,32 @@ ax2.set_title('第2类'+str(c2)+'个观测点')
 plt.tight_layout()
 plt.show()
 (c1,c2)
+
+
+''' 时间序列分析 '''
+ts2_1 = []
+ts2_2 = []
+for i in range(0,len(data2)):
+    sum2_1 = sum2_2 = 0
+    c2_1 = c2_2 = 0
+    for j in range(0,len(data2.columns)):
+        if(model_2[1][j] == 0):
+            sum2_1 += data2.ix[i,j]
+            c2_1 += 1
+        elif(model_2[1][j] == 1):
+            sum2_2 += data2.ix[i,j]
+            c2_2 += 1
+            
+    ts2_1.append(sum2_1/c2_1)
+    ts2_2.append(sum2_2/c2_2)
+    if(i%500 == 0):
+        print(i)
+
+TS2_1 = pd.Series(ts2_1)
+TS2_2 = pd.Series(ts2_2)        
+
+
+
 
 
 ''' K值选择与聚类评估 '''
