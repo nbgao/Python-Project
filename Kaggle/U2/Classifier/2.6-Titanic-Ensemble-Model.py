@@ -41,7 +41,7 @@ X_train = vec.fit_transform(X_train.to_dict(orient='record'))
 X_test = vec.transform(X_test.to_dict(orient='record`'))
 
 
-# ### DTC
+# ### DecisionTreeClassifier (DTC)
 
 # In[7]:
 
@@ -52,7 +52,7 @@ dtc.fit(X_train, y_train)
 dtc_y_predict = dtc.predict(X_test)
 
 
-# ### RFC
+# ### RandomForestClassier (RFC)
 
 # In[8]:
 
@@ -63,7 +63,7 @@ rfc.fit(X_train, y_train)
 rfc_y_predict = rfc.predict(X_test)
 
 
-# ### GBC
+# ### GradientBoostingClassifier (GBC)
 
 # In[9]:
 
@@ -82,6 +82,8 @@ gbc_y_predict = gbc.predict(X_test)
 from sklearn.metrics import classification_report
 
 
+# ### DecisionTreeClassifier (DTC)
+
 # In[11]:
 
 # 单一决策树分类性能
@@ -89,12 +91,16 @@ print('The accuracy of decision tree is', dtc.score(X_test, y_test))
 print(classification_report(dtc_y_predict, y_test))
 
 
+# ### RandomForestClassier (RFC)
+
 # In[12]:
 
 # 随机森林分类器分类性能
 print('The accuracy of random forest classifier is', rfc.score(X_test, y_test))
 print(classification_report(rfc_y_predict, y_test))
 
+
+# ### GradientBoostingClassifier (GBC)
 
 # In[13]:
 

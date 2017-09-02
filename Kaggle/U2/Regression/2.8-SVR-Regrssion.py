@@ -3,7 +3,7 @@
 
 # ## 使用“线性回归器”中分割处理好的训练和测试数据
 
-# In[4]:
+# In[16]:
 
 from sklearn.datasets import load_boston
 # 从读取房价数据存储在boston变量中
@@ -18,13 +18,6 @@ y = boston.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=33, test_size=0.25)
 
-print("The max target value is", np.max(boston.target))
-print("The min target value is", np.min(boston.target))
-print("The average target value is", np.mean(boston.target))
-
-
-# In[5]:
-
 # 从sklearn.preprocessing导入数据标准化模块
 from sklearn.preprocessing import StandardScaler
 
@@ -38,21 +31,16 @@ X_test = ss_X.transform(X_test)
 y_train = ss_y.fit_transform(y_train)
 y_test = ss_y.transform(y_test)
 
-from sklearn.linear_model import LinearRegression
-# 使用默认配置初始化线性回归器LinearRegression
-lr = LinearRegression()
-# 使用训练数据进行参数估计
-lr.fit(X_train, y_train)
-# 对测试数据进行回归预测
-lr_y_predict = lr.predict(X_test)
-
 
 # ## 使用3种不同核函数配置的支持向量机回归模型进行训练，并且分别对测试数据进行预测
 
 # In[6]:
 
+# 导入支持向量机(回归)模型
 from sklearn.svm import SVR
 
+
+# ### Linear SVR
 
 # In[7]:
 
@@ -62,6 +50,8 @@ linear_svr.fit(X_train,y_train)
 linear_svr_y_predict = linear_svr.predict(X_test)
 
 
+# ### Poly SVR
+
 # In[9]:
 
 # 使用多项式核函数配置的支持向量机进行回归预测，并且对测试样本进行预测
@@ -69,6 +59,8 @@ poly_svr = SVR(kernel='poly')
 poly_svr.fit(X_train, y_train)
 poly_svr_y_predict = poly_svr.predict(X_test)
 
+
+# ### RBF SVR
 
 # In[10]:
 
@@ -79,6 +71,8 @@ rbf_svr_y_predict = rbf_svr.predict(X_test)
 
 
 # ## 对3种核函数配置下的支持向量机回归模型在相同测试集上进行性能评估
+
+# ### Linear SVR
 
 # In[13]:
 
@@ -91,6 +85,8 @@ print('The mean squared error of linear SVR is', mean_squared_error(ss_y.inverse
 print('The mean absolute error of linear SVR is', mean_absolute_error(ss_y.inverse_transform(y_test), ss_y.inverse_transform(linear_svr_y_predict)))
 
 
+# ### Poly SVR
+
 # In[14]:
 
 # Poly SVR
@@ -98,6 +94,8 @@ print('R-squared value of Poly SVR is', poly_svr.score(X_test, y_test))
 print('The mean squared error of Poly SVR is', mean_squared_error(ss_y.inverse_transform(y_test), ss_y.inverse_transform(poly_svr_y_predict)))
 print('The mean absolute error of Poly SVR is', mean_absolute_error(ss_y.inverse_transform(y_test), ss_y.inverse_transform(poly_svr_y_predict)))
 
+
+# ### RBF SVR
 
 # In[15]:
 
