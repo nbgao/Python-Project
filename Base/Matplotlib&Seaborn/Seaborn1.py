@@ -98,6 +98,8 @@ sns.JointGrid(data=iris_data, x='sepal_length', y='sepal_width')
 plt.show()
 
 
+# ### 双变量回归拟合散点图以及单变量分布图
+
 # In[18]:
 
 sns.JointGrid(data=iris_data, x='sepal_length', y='sepal_width').plot(sns.regplot, sns.distplot)
@@ -106,43 +108,101 @@ plt.show()
 
 # ## seaborn.kdeplot
 
+# ### 单变量核密度估计曲线
+
 # In[19]:
 
 sns.kdeplot(data=iris_data['sepal_length'])
 plt.show()
 
 
-# In[20]:
+# 可以通过 kernel= 参数设置核函数，有 {'gau' | 'cos' | 'biw' | 'epa' | 'tri' | 'triw' }等，默认为 kernel='gau'。
 
-sns.kdeplot(data=iris_data['sepal_length'], shade=True, color='y')
+# In[51]:
+
+plt.figure(figsize=(12,9))
+
+ax1 = plt.subplot(3,2,1)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='gau', shade=True, color='c')
+ax1.set_title('kernel=gau')
+
+ax2 = plt.subplot(3,2,2)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='cos', shade=True, color='m')
+ax2.set_title('kernel=cos')
+
+ax3 = plt.subplot(3,2,3)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='biw', shade=True, color='g')
+ax3.set_title('kernel=biw')
+
+ax4 = plt.subplot(3,2,4)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='epa', shade=True, color='r')
+ax4.set_title('kernel=epa')
+
+ax5 = plt.subplot(3,2,5)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='tri', shade=True, color='b')
+ax5.set_title('kernel=tri')
+
+ax6 = plt.subplot(3,2,6)
+sns.kdeplot(data=iris_data['sepal_length'], kernel='triw', shade=True, color='y')
+ax6.set_title('kernel=triw')
+
 plt.show()
 
 
-# In[22]:
+# In[96]:
 
-sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], shade=True)
+plt.figure(figsize=(12,16))
+
+ax1 = plt.subplot(3,2,1)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='gau', shade=True, cmap='Greens')
+ax1.set_title('kernel=gau')
+
+ax2 = plt.subplot(3,2,2)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='cos', shade=True, cmap='Oranges')
+ax2.set_title('kernel=cos')
+
+ax3 = plt.subplot(3,2,3)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='biw', shade=True, cmap='Blues')
+ax3.set_title('kernel=biw')
+
+ax4 = plt.subplot(3,2,4)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='epa', shade=True, cmap='Reds')
+ax4.set_title('kernel=epa')
+
+ax5 = plt.subplot(3,2,5)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='tri', shade=True, cmap='Purples')
+ax5.set_title('kernel=tri')
+
+ax6 = plt.subplot(3,2,6)
+sns.kdeplot(data=iris_data['sepal_length'], data2=iris_data['sepal_width'], kernel='triw', shade=True, cmap='RdPu')
+ax6.set_title('kernel=triw')
+
+plt.tight_layout()
 plt.show()
 
 
-# In[25]:
+# In[76]:
 
 import numpy as np
 
 matrix_data = np.random.rand(10, 10)
 
-sns.heatmap(data=matrix_data)
+plt.figure(figsize=(12,10))
+sns.heatmap(data=matrix_data, cmap='Blues')
 plt.show()
 
 
 # ## 7. seaborn.clustermap
 
-# In[31]:
+# In[105]:
+
+sns.set(color_codes=True)
 
 iris_data = sns.load_dataset('iris')
 
 iris_data.pop("species")
 
-sns.clustermap(iris_data)
+sns.clustermap(iris_data, standard_scale=1, cmap='Blues_r')
 plt.show()
 
 
