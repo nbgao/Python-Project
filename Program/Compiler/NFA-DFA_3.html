@@ -11787,8 +11787,8 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">file_name1</span> <span class="o">=</span> <span class="s1">&#39;Table1&#39;</span>
-<span class="n">file_name2</span> <span class="o">=</span> <span class="s1">&#39;DFA1&#39;</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">file_name1</span> <span class="o">=</span> <span class="s1">&#39;Table3&#39;</span>
+<span class="n">file_name2</span> <span class="o">=</span> <span class="s1">&#39;DFA3&#39;</span>
 </pre></div>
 
 </div>
@@ -11823,7 +11823,7 @@ div#notebook {
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>请输入状态个数: 14
+<pre>请输入状态个数: 9
 </pre>
 </div>
 </div>
@@ -11834,7 +11834,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</pre>
+<pre>[0, 1, 2, 3, 4, 5, 6, 7, 8]</pre>
 </div>
 
 </div>
@@ -11881,23 +11881,16 @@ div#notebook {
 
 <div class="output_text output_subarea output_execute_result">
 <pre>[[&#39;0&#39;, &#39;~&#39;, &#39;1&#39;],
- [&#39;0&#39;, &#39;~&#39;, &#39;3&#39;],
- [&#39;1&#39;, &#39;1&#39;, &#39;2&#39;],
- [&#39;2&#39;, &#39;~&#39;, &#39;3&#39;],
- [&#39;2&#39;, &#39;~&#39;, &#39;1&#39;],
- [&#39;3&#39;, &#39;0&#39;, &#39;4&#39;],
+ [&#39;0&#39;, &#39;~&#39;, &#39;8&#39;],
+ [&#39;1&#39;, &#39;~&#39;, &#39;2&#39;],
+ [&#39;1&#39;, &#39;~&#39;, &#39;4&#39;],
+ [&#39;2&#39;, &#39;0&#39;, &#39;3&#39;],
+ [&#39;3&#39;, &#39;~&#39;, &#39;7&#39;],
  [&#39;4&#39;, &#39;1&#39;, &#39;5&#39;],
- [&#39;5&#39;, &#39;~&#39;, &#39;6&#39;],
- [&#39;5&#39;, &#39;~&#39;, &#39;13&#39;],
+ [&#39;5&#39;, &#39;0&#39;, &#39;6&#39;],
  [&#39;6&#39;, &#39;~&#39;, &#39;7&#39;],
- [&#39;6&#39;, &#39;~&#39;, &#39;9&#39;],
- [&#39;7&#39;, &#39;1&#39;, &#39;8&#39;],
- [&#39;8&#39;, &#39;~&#39;, &#39;12&#39;],
- [&#39;9&#39;, &#39;0&#39;, &#39;10&#39;],
- [&#39;10&#39;, &#39;1&#39;, &#39;11&#39;],
- [&#39;11&#39;, &#39;~&#39;, &#39;12&#39;],
- [&#39;12&#39;, &#39;~&#39;, &#39;6&#39;],
- [&#39;12&#39;, &#39;~&#39;, &#39;13&#39;]]</pre>
+ [&#39;7&#39;, &#39;~&#39;, &#39;1&#39;],
+ [&#39;7&#39;, &#39;~&#39;, &#39;8&#39;]]</pre>
 </div>
 
 </div>
@@ -11963,8 +11956,8 @@ div#notebook {
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>请输入接受状态: 13
-接受状态: [&#39;13&#39;]
+<pre>请输入接受状态: 8
+接受状态: [&#39;8&#39;]
 </pre>
 </div>
 </div>
@@ -12205,53 +12198,35 @@ div#notebook {
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Edge 0: {4}
-Closure 0: {4}
-Edge 1: {2}
-Closure 1: {1, 2, 3}
-Edge 0: set()
-Closure 0: set()
+<pre>Edge 0: {3}
+Closure 0: {1, 2, 3, 4, 7, 8}
 Edge 1: {5}
-Closure 1: {5, 6, 7, 9, 13}
-Edge 0: {4}
-Closure 0: {4}
-Edge 1: {2}
-Closure 1: {1, 2, 3}
-Edge 0: {10}
-Closure 0: {10}
-Edge 1: {8}
-Closure 1: {6, 7, 8, 9, 12, 13}
-Edge 0: set()
-Closure 0: set()
-Edge 1: {11}
-Closure 1: {6, 7, 9, 11, 12, 13}
-Edge 0: {10}
-Closure 0: {10}
-Edge 1: {8}
-Closure 1: {6, 7, 8, 9, 12, 13}
-Edge 0: {10}
-Closure 0: {10}
-Edge 1: {8}
-Closure 1: {6, 7, 8, 9, 12, 13}
+Closure 1: {5}
+Edge 0: {3}
+Closure 0: {1, 2, 3, 4, 7, 8}
+Edge 1: {5}
+Closure 1: {5}
+Edge 0: {6}
+Closure 0: {1, 2, 4, 6, 7, 8}
+Edge 1: set()
+Closure 1: set()
+Edge 0: {3}
+Closure 0: {1, 2, 3, 4, 7, 8}
+Edge 1: {5}
+Closure 1: {5}
 
 输出NFA构造的子集:
-0: {0, 1, 3}
-1: {4}
-2: {1, 2, 3}
-3: {5, 6, 7, 9, 13}
-4: {10}
-5: {6, 7, 8, 9, 12, 13}
-6: {6, 7, 9, 11, 12, 13}
+0: {0, 1, 2, 4, 8}
+1: {1, 2, 3, 4, 7, 8}
+2: {5}
+3: {1, 2, 4, 6, 7, 8}
 
 输出DFA:
 S	0	1	E	
-0	1	2	0
-1	[]	3	0
-2	1	2	0
-3	4	5	1
-4	[]	6	0
-5	4	5	1
-6	4	5	1
+0	1	2	1
+1	1	2	1
+2	3	[]	0
+3	1	2	1
 </pre>
 </div>
 </div>
@@ -12262,13 +12237,7 @@ S	0	1	E
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[[0, 1, 2, 0],
- [1, [], 3, 0],
- [2, 1, 2, 0],
- [3, 4, 5, 1],
- [4, [], 6, 0],
- [5, 4, 5, 1],
- [6, 4, 5, 1]]</pre>
+<pre>[[0, 1, 2, 1], [1, 1, 2, 1], [2, 3, [], 0], [3, 1, 2, 1]]</pre>
 </div>
 
 </div>
@@ -12335,13 +12304,10 @@ S	0	1	E
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[[&#39;0&#39;, &#39;1&#39;, &#39;2&#39;, &#39;0&#39;],
- [&#39;1&#39;, &#39;[]&#39;, &#39;3&#39;, &#39;0&#39;],
- [&#39;2&#39;, &#39;1&#39;, &#39;2&#39;, &#39;0&#39;],
- [&#39;3&#39;, &#39;4&#39;, &#39;5&#39;, &#39;1&#39;],
- [&#39;4&#39;, &#39;[]&#39;, &#39;6&#39;, &#39;0&#39;],
- [&#39;5&#39;, &#39;4&#39;, &#39;5&#39;, &#39;1&#39;],
- [&#39;6&#39;, &#39;4&#39;, &#39;5&#39;, &#39;1&#39;]]</pre>
+<pre>[[&#39;0&#39;, &#39;1&#39;, &#39;2&#39;, &#39;1&#39;],
+ [&#39;1&#39;, &#39;1&#39;, &#39;2&#39;, &#39;1&#39;],
+ [&#39;2&#39;, &#39;3&#39;, &#39;[]&#39;, &#39;0&#39;],
+ [&#39;3&#39;, &#39;1&#39;, &#39;2&#39;, &#39;1&#39;]]</pre>
 </div>
 
 </div>
@@ -12549,10 +12515,9 @@ S	0	1	E
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>初始化分割子集: [[0, 1, 2, 4], [3, 5, 6]]
-[[0, 1, 2, 4], [3, 5, 6]]
-[[0, 2], [3, 5, 6], [1, 4]]
-最小化分割后集合: [[0, 2], [3, 5, 6], [1, 4]]
+<pre>初始化分割子集: [[2], [0, 1, 3]]
+[[2], [0, 1, 3]]
+最小化分割后集合: [[2], [0, 1, 3]]
 </pre>
 </div>
 </div>
@@ -12645,7 +12610,7 @@ S	0	1	E
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[[0, 2, 0, 0], [1, 2, 1, 1], [2, [], 1, 0]]</pre>
+<pre>[[0, 1, [], 0], [1, 1, 0, 1]]</pre>
 </div>
 
 </div>
@@ -12679,9 +12644,8 @@ S	0	1	E
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>最小化后DFA表
 S	0	1	E
-0	2	0	0
-1	2	1	1
-2	[]	1	0
+0	1	[]	0
+1	1	0	1
 </pre>
 </div>
 </div>
@@ -12747,7 +12711,7 @@ S	0	1	E
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[[&#39;0&#39;, &#39;2&#39;, &#39;0&#39;, &#39;0&#39;], [&#39;1&#39;, &#39;2&#39;, &#39;1&#39;, &#39;1&#39;], [&#39;2&#39;, &#39;[]&#39;, &#39;1&#39;, &#39;0&#39;]]</pre>
+<pre>[[&#39;0&#39;, &#39;1&#39;, &#39;[]&#39;, &#39;0&#39;], [&#39;1&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;]]</pre>
 </div>
 
 </div>
@@ -12847,8 +12811,8 @@ S	0	1	E
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>输入符号串: 110101011
-状态转移序列:  0    0    0    2    1    2    1    2    1    1    END
+<pre>输入符号串: 010010
+状态转移序列:  1    1    0    1    1    0    1    END
 Successfully !
 </pre>
 </div>
@@ -12902,19 +12866,18 @@ Successfully !
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>输入串: 011
-状态转移序列:  0    2    1    1    END
-Successfully !
+状态转移序列:  1    1    0    ERROR
+Fail !
 
 输入串: 0101
-状态转移序列:  0    2    1    2    1    END
-Successfully !
+状态转移序列:  1    1    0    1    0    NOT END
 
 输入串: 1101011
-状态转移序列:  0    0    0    2    1    2    1    1    END
-Successfully !
+状态转移序列:  1    0    ERROR
+Fail !
 
 输入串: 11100
-状态转移序列:  0    0    0    0    2    ERROR
+状态转移序列:  1    0    ERROR
 Fail !
 </pre>
 </div>
@@ -12968,19 +12931,19 @@ Fail !
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>输入串: 0011
-状态转移序列:  0    2    ERROR
+状态转移序列:  1    1    1    0    ERROR
 Fail !
 
 输入串: 01101011
-状态转移序列:  0    2    1    1    2    1    2    1    1    END
-Successfully !
+状态转移序列:  1    1    0    ERROR
+Fail !
 
 输入串: 1101011
-状态转移序列:  0    0    0    2    1    2    1    1    END
-Successfully !
+状态转移序列:  1    0    ERROR
+Fail !
 
 输入串: 11100
-状态转移序列:  0    0    0    0    2    ERROR
+状态转移序列:  1    0    ERROR
 Fail !
 </pre>
 </div>
@@ -13034,18 +12997,19 @@ Fail !
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>输入串: 010
-状态转移序列:  0    2    1    2    NOT END
+状态转移序列:  1    1    0    1    END
+Successfully !
 
 输入串: 010010
-状态转移序列:  0    2    1    2    ERROR
-Fail !
+状态转移序列:  1    1    0    1    1    0    1    END
+Successfully !
 
 输入串: 10010100
-状态转移序列:  0    0    2    ERROR
-Fail !
+状态转移序列:  1    0    1    1    0    1    0    1    1    END
+Successfully !
 
 输入串: 1001011
-状态转移序列:  0    0    2    ERROR
+状态转移序列:  1    0    1    1    0    1    0    ERROR
 Fail !
 </pre>
 </div>

@@ -295,10 +295,12 @@ def Divide(SET):
     while(k < len(SET)):
         set_num = len(SET[k])
         if(set_num==1):    # 1个元素保留
-            break
+            pass
         elif(set_num==2):    # 2个元素
             if(not Equal(SET[k][0], SET[k][1])):
                 SET_new.append(SET[k][1])
+                SET[k].remove(SET[k][1])
+                break
         elif(set_num>=3):    # 3个以上元素
             for j in range(set_num-2):    # 长度为3的窗口向右滑动
                 if(Equal(SET[k][j+1], SET[k][j+0])):
@@ -344,6 +346,7 @@ while(1):
     SET, Finished = Divide(SET)
     if(Finished):    # 无新集合(不可再分割)时，结束分割
         break
+        
 print('最小化分割后集合:', SET)
 
 
@@ -394,6 +397,7 @@ DFA2
 
 # In[19]:
 
+print('最小化后DFA表')
 print('S\t0\t1\tE')
 for i in range(len(DFA2)):
     print('%s\t%s\t%s\t%s' %(i, DFA2[i][1], DFA2[i][2], DFA2[i][3]))
@@ -479,7 +483,7 @@ def Test(s, DFA):
     #return flag
 
 
-# In[25]:
+# In[24]:
 
 Input_str = input('输入符号串: ')
 Test(Input_str, DFA2)
@@ -487,7 +491,7 @@ Test(Input_str, DFA2)
 
 # #### NFA1测试符号串
 
-# In[26]:
+# In[25]:
 
 String1_1 = '011'
 print('输入串:', String1_1)
@@ -508,13 +512,13 @@ Test(String1_4, DFA2)
 
 # #### NFA2测试符号串
 
-# In[27]:
+# In[26]:
 
 String2_1 = '0011'
 print('输入串:', String2_1)
 Test(String2_1, DFA2)
 
-String2_2 = '0101'
+String2_2 = '01101011'
 print('\n输入串:', String2_2)
 Test(String2_2, DFA2)
 
@@ -529,21 +533,21 @@ Test(String2_4, DFA2)
 
 # #### NFA3测试符号串
 
-# In[28]:
+# In[27]:
 
-String3_1 = '0011'
+String3_1 = '010'
 print('输入串:', String3_1)
 Test(String3_1, DFA2)
 
-String3_2 = '0101'
+String3_2 = '010010'
 print('\n输入串:', String3_2)
 Test(String3_2, DFA2)
 
-String3_3 = '1101011'
+String3_3 = '10010100'
 print('\n输入串:', String3_3)
 Test(String3_3, DFA2)
 
-String3_4 = '11100'
+String3_4 = '1001011'
 print('\n输入串:', String3_4)
 Test(String3_4, DFA2)
 
