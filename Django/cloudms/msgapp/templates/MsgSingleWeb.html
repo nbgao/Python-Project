@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Cloud End Message Board (1) Home Page</title>
+</head>
+
+<body>
+	<h1>Submit Message Function Area</h1>
+	<form action="/msggate/" method="post">
+		{% csrf_token %}
+		Sender <input type="text" name="userA" /><br>
+		Receiver <input type="text" name="usrB" /><br>
+		Message Text <input type="text" name="msg" /><br>
+		<input type="submit" value="Message Submit" />
+	</form>
+
+	<h1>Get Message Function Area</h1>
+	<form action="/msggate/" method="get">
+		Receiver <input type="text" name="userC" /><br>
+		<input type="submit" value="Message Get" />
+	</form>
+	<table borader="1">
+		<thead>
+			<th>Message Time</th>
+			<th>Message Source</th>
+			<th>Message Text</th>
+		</thead>
+		<br>
+		<tbody>
+			{% for line in data %}
+			<tr>
+				<td>{{ line.time }}</td>
+				<td align="center">{{ line.userA }}</td>
+				<td>{{ line.msg }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</body>
+</html>
