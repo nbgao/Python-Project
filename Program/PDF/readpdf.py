@@ -4,17 +4,31 @@ from pdfminer.layout import LAParams
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.pdfinterp import PDFTextExtractionNotAllowed
 
+'''
+                PDF                         initialize
+                 |                              |
+                 |          set_parser()        |
+            PDFParser <————————————————————> PDFDocument
+                          set_document()
+    
+PDFResourceManager ——————> PDFPageAggregator <—————— LAParams
+                                    |
+                                    |
+                           PDFPageInterpreter
+'''
+
 def parse():
     filename = 'test1'
      # Read a bin file
-    fn = open('./doc/' + filename + '.pdf', 'rb')
+    fp = open('./doc/' + filename + '.pdf', 'rb')
     # Create PDFParser
-    parser = PDFParser(fn)
+    parser = PDFParser(fp)
     # Create PDF document
     doc = PDFDocument()
     # Link parser & doc
     parser.set_document(doc)
     doc.set_parser(parser)
+
 
     doc.initialize("")
     # Detect document provide txt transfer
@@ -43,6 +57,7 @@ def parse():
                     print(out.get_text)
                     with open('./doc/' + filename + '.txt', 'a', encoding='utf-8') as f:
                         f.write(out.get_text() + '\n')
+
 
 if __name__ == '__main__':
     parse()
