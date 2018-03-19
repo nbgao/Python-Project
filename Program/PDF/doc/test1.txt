@@ -1,0 +1,1200 @@
+21st Computer Vision Winter Workshop
+Luka ˇCehovin, Rok Mandeljc, Vitomir ˇStruc (eds.)
+Rimske Toplice, Slovenia, February 3–5, 2016
+
+Real-Time Eye Blink Detection using Facial Landmarks
+
+Tereza Soukupov ´a and Jan ˇCech
+Center for Machine Perception, Department of Cybernetics
+Faculty of Electrical Engineering, Czech Technical University in Prague
+
+{soukuter,cechj}@cmp.felk.cvut.cz
+
+Abstract. A real-time algorithm to detect eye blinks
+in a video sequence from a standard camera is pro-
+posed. Recent landmark detectors, trained on in-the-
+wild datasets exhibit excellent robustness against a
+head orientation with respect to a camera, varying
+illumination and facial expressions. We show that
+the landmarks are detected precisely enough to reli-
+ably estimate the level of the eye opening. The pro-
+posed algorithm therefore estimates the landmark
+positions, extracts a single scalar quantity – eye as-
+pect ratio (EAR) – characterizing the eye opening in
+each frame. Finally, an SVM classiﬁer detects eye
+blinks as a pattern of EAR values in a short tempo-
+ral window. The simple algorithm outperforms the
+state-of-the-art results on two standard datasets.
+
+1. Introduction
+
+Detecting eye blinks is important for instance in
+systems that monitor a human operator vigilance,
+e.g. driver drowsiness [5, 13], in systems that warn
+a computer user staring at the screen without blink-
+ing for a long time to prevent the dry eye and the
+computer vision syndromes [17, 7, 8], in human-
+computer interfaces that ease communication for dis-
+abled people [15], or for anti-spooﬁng protection in
+face recognition systems [11].
+Existing methods are either active or passive. Ac-
+tive methods are reliable but use special hardware,
+often expensive and intrusive, e.g. infrared cameras
+and illuminators [2], wearable devices, glasses with
+a special close-up cameras observing the eyes [10].
+While the passive systems rely on a standard remote
+camera only.
+Many methods have been proposed to automati-
+cally detect eye blinks in a video sequence. Several
+methods are based on a motion estimation in the eye
+region. Typically, the face and eyes are detected by
+
+Figure 1: Open and closed eyes with landmarks pi
+automatically detected by [1]. The eye aspect ratio
+EAR in Eq. (1) plotted for several frames of a video
+sequence. A single blink is present.
+
+a Viola-Jones type detector. Next, motion in the eye
+area is estimated from optical ﬂow, by sparse track-
+ing [7, 8], or by frame-to-frame intensity differenc-
+ing and adaptive thresholding. Finally, a decision is
+made whether the eyes are or are not covered by eye-
+lids [9, 15]. A different approach is to infer the state
+of the eye opening from a single image, as e.g. by
+correlation matching with open and closed eye tem-
+plates [4], a heuristic horizontal or vertical image in-
+tensity projection over the eye region [5, 6], a para-
+metric model ﬁtting to ﬁnd the eyelids [18], or active
+shape models [14].
+A major drawback of the previous approaches is
+that they usually implicitly impose too strong re-
+quirements on the setup, in the sense of a relative
+face-camera pose (head orientation), image resolu-
+tion, illumination, motion dynamics, etc. Especially
+the heuristic methods that use raw image intensity
+are likely to be very sensitive despite their real-time
+performance.
+
+However nowadays, robust real-time facial land-
+mark detectors that capture most of the character-
+istic points on a human face image, including eye
+corners and eyelids, are available, see Fig. 1. Most
+of the state-of-the-art landmark detectors formulate
+a regression problem, where a mapping from an im-
+age into landmark positions [16] or into other land-
+mark parametrization [1] is learned. These mod-
+ern landmark detectors are trained on “in-the-wild
+datasets” and they are thus robust to varying illu-
+mination, various facial expressions, and moderate
+non-frontal head rotations. An average error of the
+landmark localization of a state-of-the-art detector
+is usually below ﬁve percent of the inter-ocular dis-
+tance. Recent methods run even signiﬁcantly super
+real-time [12].
+Therefore, we propose a simple but efﬁcient al-
+gorithm to detect eye blinks by using a recent facial
+landmark detector. A single scalar quantity that re-
+ﬂects a level of the eye opening is derived from the
+landmarks. Finally, having a per-frame sequence of
+the eye opening estimates, the eye blinks are found
+by an SVM classiﬁer that is trained on examples of
+blinking and non-blinking patterns.
+Facial segmentation model presented in [14] is
+similar to the proposed method. However, their sys-
+tem is based on active shape models with reported
+processing time of about 5 seconds per frame for the
+segmentation, and the eye opening signal is normal-
+ized by statistics estimated by observing a longer se-
+quence. The system is thus usable for ofﬂine pro-
+cessing only. The proposed algorithm runs real-time,
+since the extra costs of the eye opening from land-
+marks and the linear SVM are negligible.
+The contributions of the paper are:
+
+1. Ability of two state-of-the-art
+landmark de-
+tectors [1, 16] to reliably distinguish between
+the open and closed eye states is quantita-
+tively demonstrated on a challenging in-the-
+wild dataset and for various face image resolu-
+tions.
+
+2. A novel real-time eye blink detection algorithm
+which integrates a landmark detector and a clas-
+siﬁer is proposed. The evaluation is done on two
+standard datasets [11, 8] achieving state-of-the-
+art results.
+
+The rest of the paper is structured as follows: The
+algorithm is detailed in Sec. 2, experimental valida-
+
+Figure 2: Example of detected blinks. The plots of
+the eye aspect ratio EAR in Eq. (1), results of the
+EAR thresholding (threshold set to 0.2), the blinks
+detected by EAR SVM and the ground-truth labels
+over the video sequence. Input image with detected
+landmarks (depicted frame is marked by a red line).
+
+tion and evaluation is presented in Sec. 3. Finally,
+Sec. 4 concludes the paper.
+
+2. Proposed method
+
+The eye blink is a fast closing and reopening of
+a human eye. Each individual has a little bit different
+pattern of blinks. The pattern differs in the speed of
+closing and opening, a degree of squeezing the eye
+and in a blink duration. The eye blink lasts approxi-
+
+mately 100-400 ms.
+We propose to exploit state-of-the-art facial land-
+mark detectors to localize the eyes and eyelid con-
+tours. From the landmarks detected in the image,
+we derive the eye aspect ratio (EAR) that is used as
+an estimate of the eye opening state. Since the per-
+frame EAR may not necessarily recognize the eye
+blinks correctly, a classiﬁer that takes a larger tem-
+poral window of a frame into account is trained.
+
+2.1. Description of features
+
+For every video frame, the eye landmarks are de-
+tected. The eye aspect ratio (EAR) between height
+and width of the eye is computed.
+
+EAR =
+
+(cid:107)p2 − p6(cid:107) + (cid:107)p3 − p5(cid:107)
+2(cid:107)p1 − p4(cid:107)
+
+,
+
+(1)
+
+where p1 , . . . , p6 are the 2D landmark locations, de-
+picted in Fig. 1.
+The EAR is mostly constant when an eye is open
+and is getting close to zero while closing an eye. It
+is partially person and head pose insensitive. Aspect
+ratio of the open eye has a small variance among indi-
+viduals and it is fully invariant to a uniform scaling of
+the image and in-plane rotation of the face. Since eye
+blinking is performed by both eyes synchronously,
+the EAR of both eyes is averaged. An example of
+an EAR signal over the video sequence is shown in
+Fig. 1, 2, 7.
+A similar feature to measure the eye opening was
+suggested in [9], but it was derived from the eye seg-
+mentation in a binary image.
+
+2.2. Classiﬁcation
+
+It generally does not hold that low value of the
+EAR means that a person is blinking. A low value
+of the EAR may occur when a subject closes his/her
+eyes intentionally for a longer time or performs a fa-
+cial expression, yawning, etc., or the EAR captures a
+short random ﬂuctuation of the landmarks.
+Therefore, we propose a classiﬁer that takes a
+larger temporal window of a frame as an input. For
+the 30fps videos, we experimentally found that ±6
+frames can have a signiﬁcant impact on a blink detec-
+tion for a frame where an eye is the most closed when
+blinking. Thus, for each frame, a 13-dimensional
+feature is gathered by concatenating the EARs of its
+±6 neighboring frames.
+This is implemented by a linear SVM classiﬁer
+(called EAR SVM) trained from manually anno-
+tated sequences. Positive examples are collected as
+
+ground-truth blinks, while the negatives are those
+that are sampled from parts of the videos where no
+blink occurs, with 5 frames spacing and 7 frames
+margin from the ground-truth blinks. While testing, a
+classiﬁer is executed in a scanning-window fashion.
+A 13-dimensional feature is computed and classiﬁed
+by EAR SVM for each frame except the beginning
+and ending of a video sequence.
+
+3. Experiments
+
+Two types of experiments were carried out: The
+experiments that measure accuracy of the landmark
+detectors, see Sec. 3.1, and the experiments that eval-
+uate performance of the whole eye blink detection
+algorithm, see Sec 3.2.
+
+3.1. Accuracy of landmark detectors
+
+To evaluate accuracy of tested landmark detectors,
+we used the 300-VW dataset [19]. It is a dataset con-
+taining 50 videos where each frame has associated a
+precise annotation of facial landmarks. The videos
+are “in-the-wild”, mostly recorded from a TV.
+The purpose of the following tests is to demon-
+strate that recent landmark detectors are particularly
+robust and precise in detecting eyes, i.e. the eye-
+corners and contour of the eyelids. Therefore we pre-
+pared a dataset, a subset of the 300-VW, containing
+sample images with both open and closed eyes. More
+precisely, having the ground-truth landmark annota-
+tion, we sorted the frames for each subject by the eye
+aspect ratio (EAR in Eq. (1)) and took 10 frames of
+the highest ratio (eyes wide open), 10 frames of the
+lowest ratio (mostly eyes tightly shut) and 10 frames
+sampled randomly. Thus we collected 1500 images.
+Moreover, all the images were later subsampled (suc-
+cessively 10 times by factor 0.75) in order to evaluate
+accuracy of tested detectors on small face images.
+Two state-of-the-art
+landmark detectors were
+tested: Chehra [1] and Intraface [16]. Both run in
+real-time1 . Samples from the dataset are shown in
+Fig. 3. Notice that faces are not always frontal to the
+camera, the expression is not always neutral, peo-
+ple are often emotionally speaking or smiling, etc.
+Sometimes people wear glasses, hair may occasion-
+ally partially occlude one of the eyes. Both detectors
+perform generally well, but the Intraface is more ro-
+bust to very small face images, sometimes at impres-
+sive extent as shown in Fig. 3.
+
+1 Intraface runs in 50 Hz on a standard laptop.
+
+Figure 3: Example images from the 300-VW dataset
+with landmarks obtained by Chehra [1] and In-
+traface [16]. Original images (left) with inter-ocular
+distance (IOD) equal to 63 (top) and 53 (bottom) pix-
+els. Images subsampled (right) to IOD equal to 6.3
+(top) and 17 (bottom).
+
+Quantitatively, the accuracy of the landmark de-
+tection for a face image is measured by the average
+relative landmark localization error, deﬁned as usu-
+ally
+
+N(cid:88)
+
+i=1
+
+ =
+
+100
+κN
+
+||xi − ˆxi ||2 ,
+
+(2)
+
+where xi is the ground-truth location of landmark i
+in the image, ˆxi is an estimated landmark location by
+a detector, N is a number of landmarks and normal-
+ization factor κ is the inter-ocular distance (IOD), i.e.
+Euclidean distance between eye centers in the image.
+First, a standard cumulative histogram of the aver-
+age relative landmark localization error  was calcu-
+lated, see Fig. 4, for a complete set of 49 landmarks
+and also for a subset of 12 landmarks of the eyes only,
+since these landmarks are used in the proposed eye
+blink detector. The results are calculated for all the
+original images that have average IOD around 80 px,
+and also for all “small” face images (including sub-
+sampled ones) having IOD ≤ 50 px. For all land-
+marks, Chehra has more occurrences of very small
+errors (up to 5 percent of the IOD), but Intraface is
+more robust having more occurrences of errors be-
+low 10 percent of the IOD. For eye landmarks only,
+
+Figure 4: Cumulative histogram of average localiza-
+tion error of all 49 landmarks (top) and 12 landmarks
+of the eyes (bottom). The histograms are computed
+for original resolution images (solid lines) and a sub-
+set of small images (IOD ≤ 50 px).
+
+(cid:80)
+
+the Intraface is always more precise than Chehra. As
+already mentioned, the Intraface is much more robust
+to small images than Chehra. This behaviour is fur-
+ther observed in the following experiment.
+Taking a set of all 15k images, we measured a
+mean localization error µ as a function of a face im-
+age resolution determined by the IOD. More pre-
+cisely, µ = 1|S |
+j∈S j , i.e. average error over set of
+face images S having the IOD in a given range. Re-
+sults are shown in Fig. 5. Plots have errorbars of stan-
+dard deviation. It is seen that Chehra fails quickly
+for images with IOD < 20 px. For larger faces, the
+mean error is comparable, although slightly better for
+Intraface for the eye landmarks.
+The last test is directly related to the eye blink de-
+tector. We measured accuracy of EAR as a func-
+tion of the IOD. Mean EAR error is deﬁned as a
+mean absolute difference between the true and the
+estimated EAR. The plots are computed for two sub-
+sets: closed/closing (average true ratio 0.05 ± 0.05)
+
+Figure 5: Landmark localization accuracy as a func-
+tion of the face image resolution computed for all
+landmarks and eye landmarks only.
+
+and open eyes (average true ratio 0.4 ± 0.1). The
+error is higher for closed eyes. The reason is prob-
+ably that both detectors are more likely to output
+open eyes in case of a failure. It is seen that ratio
+error for IOD < 20 px causes a major confusion
+between open/close eye states for Chehra, neverthe-
+less for larger faces the ratio is estimated precisely
+enough to ensure a reliable eye blink detection.
+
+3.2. Eye blink detector evaluation
+
+We evaluate on two standard databases with
+ground-truth annotations of blinks. The ﬁrst one is
+ZJU [11] consisting of 80 short videos of 20 sub-
+jects. Each subject has 4 videos: 2 with and 2 without
+glasses, 3 videos are frontal and 1 is an upward view.
+The 30fps videos are of size 320 × 240 px. An av-
+erage video length is 136 frames and contains about
+3.6 blinks in average. An average IOD is 57.4 pixels.
+In this database, subjects do not perform any notice-
+able facial expressions. They look straight into the
+camera at close distance, almost do not move, do not
+
+Figure 6: Accuracy of the eye-opening ratio as a
+function of the face image resolution. Top:
+for
+images with small true ratio (mostly closing/closed
+eyes), and bottom:
+images with higher ratio (open
+eyes).
+
+either smile nor speak. A ground-truth blink is de-
+ﬁned by its beginning frame, peak frame and ending
+frame. The second database Eyeblink8 [8] is more
+challenging. It consists of 8 long videos of 4 sub-
+jects that are smiling, rotating head naturally, cover-
+ing face with hands, yawning, drinking and looking
+down probably on a keyboard. These videos have
+length from 5k to 11k frames, also 30fps, with a res-
+olution 640 × 480 pixels and an average IOD 62.9
+pixels. They contain about 50 blinks on average per
+video. Each frame belonging to a blink is annotated
+by half-open or close state of the eyes. We consider
+half blinks, which do not achieve the close state, as
+full blinks to be consistent with the ZJU.
+Besides testing the proposed EAR SVM methods,
+that are trained to detect the speciﬁc blink pattern,
+we compare with a simple baseline method, which
+only thresholds the EAR in Eq. (1) values. The EAR
+SVM classiﬁers are tested with both landmark detec-
+tors Chehra [1] and Intraface [16].
+
+section with detected blinks. The number of false
+negatives is counted as a number of the ground-truth
+blinks which do not intersect detected blinks. The
+number of false positives is equal to the number of
+detected blinks minus the number of true positives
+plus a penalty for detecting too long blinks. The
+penalty is counted only for detecting blinks twice
+longer then an average blink of length A. Every long
+blink of length L is counted L
+A times as a false posi-
+tive. The number of all possibly detectable blinks is
+computed as number of frames of a video sequence
+divided by subject average blink length following
+Drutarovsky and Fogelton [8].
+The ZJU database appears relatively easy.
+It
+mostly holds that every eye closing is an eye blink.
+Consequently, the precision-recall curves shown in
+Fig. 8a of the EAR thresholding and both EAR SVM
+classiﬁers are almost identical. These curves were
+calculated by spanning a threshold of the EAR and
+SVM output score respectively. All our methods
+outperform other detectors [9, 8, 5]. The published
+methods presented the precision and the recall for a
+single operation point only, not the precision-recall
+curve. See Fig. 8a for comparison.
+The precision-recall curves in Fig. 8b shows eval-
+uation on the Eyeblink8 database. We observe that in
+this challenging database the EAR thresholding lags
+behind both EAR SVM classiﬁers. The thresholding
+fails when a subject smiles (has narrowed eyes - see
+an example in Fig. 7), has a side view or when the
+subject closes his/her eyes for a time longer than a
+blink duration. Both SVM detectors performs much
+better, the Intraface detector based SVM is even a
+little better than the Chehra SVM. Both EAR SVM
+detectors outperform the method by Drutarovsky and
+Fogelton [8] by a signiﬁcant margin.
+Finally, we measured a dependence of the whole
+blink detector accuracy on the average IOD over the
+dataset. Every frame of the ZJU database was sub-
+sampled to 90%, 80%, ..., 10% of its original reso-
+lution. Both Chehra-SVM and Intraface-SVM were
+used for evaluation. For each resolution, the area un-
+der the precision-recall curve (AUC) was computed.
+The result is shown in Fig. 9. We can see that with
+Chehra landmarks the accuracy remains very high
+until average IOD is about 30 px. The detector fails
+on images with the IOD < 20 px. Intraface land-
+marks are much better in low resolutions. This con-
+ﬁrms our previous study on the accuracy of land-
+marks in Sec. 3.1.
+
+Figure 7: Example of detected blinks where the
+EAR thresholding fails while EAR SVM succeeds.
+The plots of the eye aspect ratio EAR in Eq. (1), re-
+sults of the EAR thresholding (threshold set to 0.2),
+the blinks detected by EAR SVM and the ground-
+truth labels over the video sequence.
+Input image
+with detected landmarks (depicted frame is marked
+by a red line).
+
+The experiment with EAR SVM is done in a cross-
+dataset fashion. It means that the SVM classiﬁer is
+trained on the Eyeblink8 and tested on the ZJU and
+vice versa.
+To evaluate detector accuracy, predicted blinks are
+compared with the ground-truth blinks. The number
+of true positives is determined as a number of the
+ground-truth blinks which have a non-empty inter-
+
+(a) ZJU
+
+(b) Eyeblink8
+
+Figure 8: Precision-recall curves of the EAR thresh-
+olding and EAR SVM classiﬁers measured on (a) the
+ZJU and (b) the Eyeblink8 databases. Published re-
+sults of methods A - Drutarovsky and Fogelton [8], B
+- Lee et al. [9], C - Danisman et al. [5] are depicted.
+
+4. Conclusion
+
+A real-time eye blink detection algorithm was
+presented. We quantitatively demonstrated that
+regression-based facial landmark detectors are pre-
+cise enough to reliably estimate a level of eye open-
+ness. While they are robust to low image quality (low
+image resolution in a large extent) and in-the-wild
+
+Figure 9: Accuracy of the eye blink detector (mea-
+sured by AUC) as a function of the image resolution
+(average IOD) when subsampling the ZJU dataset.
+
+phenomena as non-frontality, bad illumination, facial
+expressions, etc.
+State-of-the-art on two standard datasets was
+achieved using the robust landmark detector fol-
+lowed by a simple eye blink detection based on the
+SVM. The algorithm runs in real-time, since the ad-
+ditional computational costs for the eye blink detec-
+tion are negligible besides the real-time landmark de-
+tectors.
+The proposed SVM method that uses a temporal
+window of the eye aspect ratio (EAR), outperforms
+the EAR thresholding. On the other hand, the thresh-
+olding is usable as a single image classiﬁer to detect
+the eye state, in case that a longer sequence is not
+available.
+We see a limitation that a ﬁxed blink duration for
+all subjects was assumed, although everyone’s blink
+lasts differently. The results could be improved by an
+adaptive approach. Another limitation is in the eye
+opening estimate. While EAR is estimated from a 2D
+image, it is fairly insensitive to a head orientation, but
+may lose discriminability for out of plane rotations.
+A solution might be to deﬁne the EAR in 3D. There
+are landmark detectors that estimate a 3D pose (po-
+sition and orientation) of a 3D model of landmarks,
+e.g. [1, 3].
+
+Acknowledgment
+
+The research was supported by CTU student grant
+SGS15/155/OHK3/2T/13.
+
+[16] X. Xiong and F. De la Torre. Supervised descent
+methods and its applications to face alignment. In
+Proc. CVPR, 2013. 2, 3, 4, 5
+[17] Z. Yan, L. Hu, H. Chen, and F. Lu. Computer vision
+syndrome: A widely spreading but largely unknown
+epidemic among computer users. Computers in Hu-
+man Behaviour, (24):2026–2042, 2008. 1
+[18] F. Yang, X. Yu, J. Huang, P. Yang, and D. Metaxas.
+Robust eyelid tracking for fatigue detection. In ICIP,
+2012. 1
+[19] S. Zafeiriou, G. Tzimiropoulos, and M. Pantic. The
+300 videos in the wild (300-VW) facial landmark
+tracking in-the-wild challenge.
+In ICCV Work-
+
+shop, 2015. http://ibug.doc.ic.ac.uk/
+resources/300-VW/. 3
+
+References
+
+[1] A. Asthana, S. Zafeoriou, S. Cheng, and M. Pantic.
+Incremental face alignment in the wild. In Confer-
+ence on Computer Vision and Pattern Recognition,
+2014. 1, 2, 3, 4, 5, 7
+[2] L. M. Bergasa, J. Nuevo, M. A. Sotelo, and
+M. Vazquez. Real-time system for monitoring driver
+vigilance. In IEEE Intelligent Vehicles Symposium,
+2004. 1
+[3] J. Cech, V. Franc, and J. Matas. A 3D approach to
+facial landmarks: Detection, reﬁnement, and track-
+ing.
+In Proc. International Conference on Pattern
+Recognition, 2014. 7
+[4] M. Chau and M. Betke. Real time eye tracking and
+blink detection with USB cameras. Technical Report
+2005-12, Boston University Computer Science, May
+2005. 1
+[5] T. Danisman, I. Bilasco, C. Djeraba, and N. Ihad-
+dadene. Drowsy driver detection system using eye
+blink patterns.
+In Machine and Web Intelligence
+(ICMWI), Oct 2010. 1, 6, 7
+[6] H. Dinh, E. Jovanov, and R. Adhami. Eye blink
+detection using intensity vertical projection. In In-
+ternational Multi-Conference on Engineering and
+Technological Innovation, IMETI 2012. 1
+[7] M. Divjak and H. Bischof. Eye blink based fa-
+tigue detection for prevention of computer vision
+syndrome. In IAPR Conference on Machine Vision
+Applications, 2009. 1
+[8] T. Drutarovsky and A. Fogelton. Eye blink detec-
+tion using variance of motion vectors. In Computer
+Vision - ECCV Workshops. 2014. 1, 2, 5, 6, 7
+[9] W. H. Lee, E. C. Lee, and K. E. Park. Blink detec-
+tion robust to various facial poses. Journal of Neu-
+roscience Methods, Nov. 2010. 1, 3, 6, 7
+[10] Medicton group. The system I4Control. http://
+
+www.i4tracking.cz/. 1
+
+[11] G. Pan, L. Sun, Z. Wu, and S. Lao. Eyeblink-based
+anti-spooﬁng in face recognition from a generic we-
+bcamera. In ICCV, 2007. 1, 2, 5
+[12] S. Ren, X. Cao, Y. Wei, and J. Sun. Face alignment
+at 3000 fps via regressing local binary features. In
+Proc. CVPR, 2014. 2
+[13] A. Sahayadhas, K. Sundaraj, and M. Murugappan.
+Detecting driver drowsiness based on sensors: A re-
+view. MDPI open access: sensors, 2012. 1
+[14] F. M. Sukno, S.-K. Pavani, C. Butakoff, and A. F.
+Frangi. Automatic assessment of eye blinking pat-
+terns through statistical shape models.
+In ICVS,
+2009. 1, 2
+[15] D. Torricelli, M. Goffredo, S. Conforto, and
+M. Schmid. An adaptive blink detector to initial-
+ize and update a view-basedremote eye gaze track-
+ing system in a natural scenario. Pattern Recogn.
+Lett., 30(12):1144–1150, Sept. 2009. 1
+
+21st Computer Vision Winter Workshop
+Luka ˇCehovin, Rok Mandeljc, Vitomir ˇStruc (eds.)
+Rimske Toplice, Slovenia, February 3–5, 2016
+
+Real-Time Eye Blink Detection using Facial Landmarks
+
+Tereza Soukupov ´a and Jan ˇCech
+Center for Machine Perception, Department of Cybernetics
+Faculty of Electrical Engineering, Czech Technical University in Prague
+
+{soukuter,cechj}@cmp.felk.cvut.cz
+
+Abstract. A real-time algorithm to detect eye blinks
+in a video sequence from a standard camera is pro-
+posed. Recent landmark detectors, trained on in-the-
+wild datasets exhibit excellent robustness against a
+head orientation with respect to a camera, varying
+illumination and facial expressions. We show that
+the landmarks are detected precisely enough to reli-
+ably estimate the level of the eye opening. The pro-
+posed algorithm therefore estimates the landmark
+positions, extracts a single scalar quantity – eye as-
+pect ratio (EAR) – characterizing the eye opening in
+each frame. Finally, an SVM classiﬁer detects eye
+blinks as a pattern of EAR values in a short tempo-
+ral window. The simple algorithm outperforms the
+state-of-the-art results on two standard datasets.
+
+1. Introduction
+
+Detecting eye blinks is important for instance in
+systems that monitor a human operator vigilance,
+e.g. driver drowsiness [5, 13], in systems that warn
+a computer user staring at the screen without blink-
+ing for a long time to prevent the dry eye and the
+computer vision syndromes [17, 7, 8], in human-
+computer interfaces that ease communication for dis-
+abled people [15], or for anti-spooﬁng protection in
+face recognition systems [11].
+Existing methods are either active or passive. Ac-
+tive methods are reliable but use special hardware,
+often expensive and intrusive, e.g. infrared cameras
+and illuminators [2], wearable devices, glasses with
+a special close-up cameras observing the eyes [10].
+While the passive systems rely on a standard remote
+camera only.
+Many methods have been proposed to automati-
+cally detect eye blinks in a video sequence. Several
+methods are based on a motion estimation in the eye
+region. Typically, the face and eyes are detected by
+
+Figure 1: Open and closed eyes with landmarks pi
+automatically detected by [1]. The eye aspect ratio
+EAR in Eq. (1) plotted for several frames of a video
+sequence. A single blink is present.
+
+a Viola-Jones type detector. Next, motion in the eye
+area is estimated from optical ﬂow, by sparse track-
+ing [7, 8], or by frame-to-frame intensity differenc-
+ing and adaptive thresholding. Finally, a decision is
+made whether the eyes are or are not covered by eye-
+lids [9, 15]. A different approach is to infer the state
+of the eye opening from a single image, as e.g. by
+correlation matching with open and closed eye tem-
+plates [4], a heuristic horizontal or vertical image in-
+tensity projection over the eye region [5, 6], a para-
+metric model ﬁtting to ﬁnd the eyelids [18], or active
+shape models [14].
+A major drawback of the previous approaches is
+that they usually implicitly impose too strong re-
+quirements on the setup, in the sense of a relative
+face-camera pose (head orientation), image resolu-
+tion, illumination, motion dynamics, etc. Especially
+the heuristic methods that use raw image intensity
+are likely to be very sensitive despite their real-time
+performance.
+
+However nowadays, robust real-time facial land-
+mark detectors that capture most of the character-
+istic points on a human face image, including eye
+corners and eyelids, are available, see Fig. 1. Most
+of the state-of-the-art landmark detectors formulate
+a regression problem, where a mapping from an im-
+age into landmark positions [16] or into other land-
+mark parametrization [1] is learned. These mod-
+ern landmark detectors are trained on “in-the-wild
+datasets” and they are thus robust to varying illu-
+mination, various facial expressions, and moderate
+non-frontal head rotations. An average error of the
+landmark localization of a state-of-the-art detector
+is usually below ﬁve percent of the inter-ocular dis-
+tance. Recent methods run even signiﬁcantly super
+real-time [12].
+Therefore, we propose a simple but efﬁcient al-
+gorithm to detect eye blinks by using a recent facial
+landmark detector. A single scalar quantity that re-
+ﬂects a level of the eye opening is derived from the
+landmarks. Finally, having a per-frame sequence of
+the eye opening estimates, the eye blinks are found
+by an SVM classiﬁer that is trained on examples of
+blinking and non-blinking patterns.
+Facial segmentation model presented in [14] is
+similar to the proposed method. However, their sys-
+tem is based on active shape models with reported
+processing time of about 5 seconds per frame for the
+segmentation, and the eye opening signal is normal-
+ized by statistics estimated by observing a longer se-
+quence. The system is thus usable for ofﬂine pro-
+cessing only. The proposed algorithm runs real-time,
+since the extra costs of the eye opening from land-
+marks and the linear SVM are negligible.
+The contributions of the paper are:
+
+1. Ability of two state-of-the-art
+landmark de-
+tectors [1, 16] to reliably distinguish between
+the open and closed eye states is quantita-
+tively demonstrated on a challenging in-the-
+wild dataset and for various face image resolu-
+tions.
+
+2. A novel real-time eye blink detection algorithm
+which integrates a landmark detector and a clas-
+siﬁer is proposed. The evaluation is done on two
+standard datasets [11, 8] achieving state-of-the-
+art results.
+
+The rest of the paper is structured as follows: The
+algorithm is detailed in Sec. 2, experimental valida-
+
+Figure 2: Example of detected blinks. The plots of
+the eye aspect ratio EAR in Eq. (1), results of the
+EAR thresholding (threshold set to 0.2), the blinks
+detected by EAR SVM and the ground-truth labels
+over the video sequence. Input image with detected
+landmarks (depicted frame is marked by a red line).
+
+tion and evaluation is presented in Sec. 3. Finally,
+Sec. 4 concludes the paper.
+
+2. Proposed method
+
+The eye blink is a fast closing and reopening of
+a human eye. Each individual has a little bit different
+pattern of blinks. The pattern differs in the speed of
+closing and opening, a degree of squeezing the eye
+and in a blink duration. The eye blink lasts approxi-
+
+mately 100-400 ms.
+We propose to exploit state-of-the-art facial land-
+mark detectors to localize the eyes and eyelid con-
+tours. From the landmarks detected in the image,
+we derive the eye aspect ratio (EAR) that is used as
+an estimate of the eye opening state. Since the per-
+frame EAR may not necessarily recognize the eye
+blinks correctly, a classiﬁer that takes a larger tem-
+poral window of a frame into account is trained.
+
+2.1. Description of features
+
+For every video frame, the eye landmarks are de-
+tected. The eye aspect ratio (EAR) between height
+and width of the eye is computed.
+
+EAR =
+
+(cid:107)p2 − p6(cid:107) + (cid:107)p3 − p5(cid:107)
+2(cid:107)p1 − p4(cid:107)
+
+,
+
+(1)
+
+where p1 , . . . , p6 are the 2D landmark locations, de-
+picted in Fig. 1.
+The EAR is mostly constant when an eye is open
+and is getting close to zero while closing an eye. It
+is partially person and head pose insensitive. Aspect
+ratio of the open eye has a small variance among indi-
+viduals and it is fully invariant to a uniform scaling of
+the image and in-plane rotation of the face. Since eye
+blinking is performed by both eyes synchronously,
+the EAR of both eyes is averaged. An example of
+an EAR signal over the video sequence is shown in
+Fig. 1, 2, 7.
+A similar feature to measure the eye opening was
+suggested in [9], but it was derived from the eye seg-
+mentation in a binary image.
+
+2.2. Classiﬁcation
+
+It generally does not hold that low value of the
+EAR means that a person is blinking. A low value
+of the EAR may occur when a subject closes his/her
+eyes intentionally for a longer time or performs a fa-
+cial expression, yawning, etc., or the EAR captures a
+short random ﬂuctuation of the landmarks.
+Therefore, we propose a classiﬁer that takes a
+larger temporal window of a frame as an input. For
+the 30fps videos, we experimentally found that ±6
+frames can have a signiﬁcant impact on a blink detec-
+tion for a frame where an eye is the most closed when
+blinking. Thus, for each frame, a 13-dimensional
+feature is gathered by concatenating the EARs of its
+±6 neighboring frames.
+This is implemented by a linear SVM classiﬁer
+(called EAR SVM) trained from manually anno-
+tated sequences. Positive examples are collected as
+
+ground-truth blinks, while the negatives are those
+that are sampled from parts of the videos where no
+blink occurs, with 5 frames spacing and 7 frames
+margin from the ground-truth blinks. While testing, a
+classiﬁer is executed in a scanning-window fashion.
+A 13-dimensional feature is computed and classiﬁed
+by EAR SVM for each frame except the beginning
+and ending of a video sequence.
+
+3. Experiments
+
+Two types of experiments were carried out: The
+experiments that measure accuracy of the landmark
+detectors, see Sec. 3.1, and the experiments that eval-
+uate performance of the whole eye blink detection
+algorithm, see Sec 3.2.
+
+3.1. Accuracy of landmark detectors
+
+To evaluate accuracy of tested landmark detectors,
+we used the 300-VW dataset [19]. It is a dataset con-
+taining 50 videos where each frame has associated a
+precise annotation of facial landmarks. The videos
+are “in-the-wild”, mostly recorded from a TV.
+The purpose of the following tests is to demon-
+strate that recent landmark detectors are particularly
+robust and precise in detecting eyes, i.e. the eye-
+corners and contour of the eyelids. Therefore we pre-
+pared a dataset, a subset of the 300-VW, containing
+sample images with both open and closed eyes. More
+precisely, having the ground-truth landmark annota-
+tion, we sorted the frames for each subject by the eye
+aspect ratio (EAR in Eq. (1)) and took 10 frames of
+the highest ratio (eyes wide open), 10 frames of the
+lowest ratio (mostly eyes tightly shut) and 10 frames
+sampled randomly. Thus we collected 1500 images.
+Moreover, all the images were later subsampled (suc-
+cessively 10 times by factor 0.75) in order to evaluate
+accuracy of tested detectors on small face images.
+Two state-of-the-art
+landmark detectors were
+tested: Chehra [1] and Intraface [16]. Both run in
+real-time1 . Samples from the dataset are shown in
+Fig. 3. Notice that faces are not always frontal to the
+camera, the expression is not always neutral, peo-
+ple are often emotionally speaking or smiling, etc.
+Sometimes people wear glasses, hair may occasion-
+ally partially occlude one of the eyes. Both detectors
+perform generally well, but the Intraface is more ro-
+bust to very small face images, sometimes at impres-
+sive extent as shown in Fig. 3.
+
+1 Intraface runs in 50 Hz on a standard laptop.
+
+Figure 3: Example images from the 300-VW dataset
+with landmarks obtained by Chehra [1] and In-
+traface [16]. Original images (left) with inter-ocular
+distance (IOD) equal to 63 (top) and 53 (bottom) pix-
+els. Images subsampled (right) to IOD equal to 6.3
+(top) and 17 (bottom).
+
+Quantitatively, the accuracy of the landmark de-
+tection for a face image is measured by the average
+relative landmark localization error, deﬁned as usu-
+ally
+
+N(cid:88)
+
+i=1
+
+ =
+
+100
+κN
+
+||xi − ˆxi ||2 ,
+
+(2)
+
+where xi is the ground-truth location of landmark i
+in the image, ˆxi is an estimated landmark location by
+a detector, N is a number of landmarks and normal-
+ization factor κ is the inter-ocular distance (IOD), i.e.
+Euclidean distance between eye centers in the image.
+First, a standard cumulative histogram of the aver-
+age relative landmark localization error  was calcu-
+lated, see Fig. 4, for a complete set of 49 landmarks
+and also for a subset of 12 landmarks of the eyes only,
+since these landmarks are used in the proposed eye
+blink detector. The results are calculated for all the
+original images that have average IOD around 80 px,
+and also for all “small” face images (including sub-
+sampled ones) having IOD ≤ 50 px. For all land-
+marks, Chehra has more occurrences of very small
+errors (up to 5 percent of the IOD), but Intraface is
+more robust having more occurrences of errors be-
+low 10 percent of the IOD. For eye landmarks only,
+
+Figure 4: Cumulative histogram of average localiza-
+tion error of all 49 landmarks (top) and 12 landmarks
+of the eyes (bottom). The histograms are computed
+for original resolution images (solid lines) and a sub-
+set of small images (IOD ≤ 50 px).
+
+(cid:80)
+
+the Intraface is always more precise than Chehra. As
+already mentioned, the Intraface is much more robust
+to small images than Chehra. This behaviour is fur-
+ther observed in the following experiment.
+Taking a set of all 15k images, we measured a
+mean localization error µ as a function of a face im-
+age resolution determined by the IOD. More pre-
+cisely, µ = 1|S |
+j∈S j , i.e. average error over set of
+face images S having the IOD in a given range. Re-
+sults are shown in Fig. 5. Plots have errorbars of stan-
+dard deviation. It is seen that Chehra fails quickly
+for images with IOD < 20 px. For larger faces, the
+mean error is comparable, although slightly better for
+Intraface for the eye landmarks.
+The last test is directly related to the eye blink de-
+tector. We measured accuracy of EAR as a func-
+tion of the IOD. Mean EAR error is deﬁned as a
+mean absolute difference between the true and the
+estimated EAR. The plots are computed for two sub-
+sets: closed/closing (average true ratio 0.05 ± 0.05)
+
+Figure 5: Landmark localization accuracy as a func-
+tion of the face image resolution computed for all
+landmarks and eye landmarks only.
+
+and open eyes (average true ratio 0.4 ± 0.1). The
+error is higher for closed eyes. The reason is prob-
+ably that both detectors are more likely to output
+open eyes in case of a failure. It is seen that ratio
+error for IOD < 20 px causes a major confusion
+between open/close eye states for Chehra, neverthe-
+less for larger faces the ratio is estimated precisely
+enough to ensure a reliable eye blink detection.
+
+3.2. Eye blink detector evaluation
+
+We evaluate on two standard databases with
+ground-truth annotations of blinks. The ﬁrst one is
+ZJU [11] consisting of 80 short videos of 20 sub-
+jects. Each subject has 4 videos: 2 with and 2 without
+glasses, 3 videos are frontal and 1 is an upward view.
+The 30fps videos are of size 320 × 240 px. An av-
+erage video length is 136 frames and contains about
+3.6 blinks in average. An average IOD is 57.4 pixels.
+In this database, subjects do not perform any notice-
+able facial expressions. They look straight into the
+camera at close distance, almost do not move, do not
+
+Figure 6: Accuracy of the eye-opening ratio as a
+function of the face image resolution. Top:
+for
+images with small true ratio (mostly closing/closed
+eyes), and bottom:
+images with higher ratio (open
+eyes).
+
+either smile nor speak. A ground-truth blink is de-
+ﬁned by its beginning frame, peak frame and ending
+frame. The second database Eyeblink8 [8] is more
+challenging. It consists of 8 long videos of 4 sub-
+jects that are smiling, rotating head naturally, cover-
+ing face with hands, yawning, drinking and looking
+down probably on a keyboard. These videos have
+length from 5k to 11k frames, also 30fps, with a res-
+olution 640 × 480 pixels and an average IOD 62.9
+pixels. They contain about 50 blinks on average per
+video. Each frame belonging to a blink is annotated
+by half-open or close state of the eyes. We consider
+half blinks, which do not achieve the close state, as
+full blinks to be consistent with the ZJU.
+Besides testing the proposed EAR SVM methods,
+that are trained to detect the speciﬁc blink pattern,
+we compare with a simple baseline method, which
+only thresholds the EAR in Eq. (1) values. The EAR
+SVM classiﬁers are tested with both landmark detec-
+tors Chehra [1] and Intraface [16].
+
+section with detected blinks. The number of false
+negatives is counted as a number of the ground-truth
+blinks which do not intersect detected blinks. The
+number of false positives is equal to the number of
+detected blinks minus the number of true positives
+plus a penalty for detecting too long blinks. The
+penalty is counted only for detecting blinks twice
+longer then an average blink of length A. Every long
+blink of length L is counted L
+A times as a false posi-
+tive. The number of all possibly detectable blinks is
+computed as number of frames of a video sequence
+divided by subject average blink length following
+Drutarovsky and Fogelton [8].
+The ZJU database appears relatively easy.
+It
+mostly holds that every eye closing is an eye blink.
+Consequently, the precision-recall curves shown in
+Fig. 8a of the EAR thresholding and both EAR SVM
+classiﬁers are almost identical. These curves were
+calculated by spanning a threshold of the EAR and
+SVM output score respectively. All our methods
+outperform other detectors [9, 8, 5]. The published
+methods presented the precision and the recall for a
+single operation point only, not the precision-recall
+curve. See Fig. 8a for comparison.
+The precision-recall curves in Fig. 8b shows eval-
+uation on the Eyeblink8 database. We observe that in
+this challenging database the EAR thresholding lags
+behind both EAR SVM classiﬁers. The thresholding
+fails when a subject smiles (has narrowed eyes - see
+an example in Fig. 7), has a side view or when the
+subject closes his/her eyes for a time longer than a
+blink duration. Both SVM detectors performs much
+better, the Intraface detector based SVM is even a
+little better than the Chehra SVM. Both EAR SVM
+detectors outperform the method by Drutarovsky and
+Fogelton [8] by a signiﬁcant margin.
+Finally, we measured a dependence of the whole
+blink detector accuracy on the average IOD over the
+dataset. Every frame of the ZJU database was sub-
+sampled to 90%, 80%, ..., 10% of its original reso-
+lution. Both Chehra-SVM and Intraface-SVM were
+used for evaluation. For each resolution, the area un-
+der the precision-recall curve (AUC) was computed.
+The result is shown in Fig. 9. We can see that with
+Chehra landmarks the accuracy remains very high
+until average IOD is about 30 px. The detector fails
+on images with the IOD < 20 px. Intraface land-
+marks are much better in low resolutions. This con-
+ﬁrms our previous study on the accuracy of land-
+marks in Sec. 3.1.
+
+Figure 7: Example of detected blinks where the
+EAR thresholding fails while EAR SVM succeeds.
+The plots of the eye aspect ratio EAR in Eq. (1), re-
+sults of the EAR thresholding (threshold set to 0.2),
+the blinks detected by EAR SVM and the ground-
+truth labels over the video sequence.
+Input image
+with detected landmarks (depicted frame is marked
+by a red line).
+
+The experiment with EAR SVM is done in a cross-
+dataset fashion. It means that the SVM classiﬁer is
+trained on the Eyeblink8 and tested on the ZJU and
+vice versa.
+To evaluate detector accuracy, predicted blinks are
+compared with the ground-truth blinks. The number
+of true positives is determined as a number of the
+ground-truth blinks which have a non-empty inter-
+
+(a) ZJU
+
+(b) Eyeblink8
+
+Figure 8: Precision-recall curves of the EAR thresh-
+olding and EAR SVM classiﬁers measured on (a) the
+ZJU and (b) the Eyeblink8 databases. Published re-
+sults of methods A - Drutarovsky and Fogelton [8], B
+- Lee et al. [9], C - Danisman et al. [5] are depicted.
+
+4. Conclusion
+
+A real-time eye blink detection algorithm was
+presented. We quantitatively demonstrated that
+regression-based facial landmark detectors are pre-
+cise enough to reliably estimate a level of eye open-
+ness. While they are robust to low image quality (low
+image resolution in a large extent) and in-the-wild
+
+Figure 9: Accuracy of the eye blink detector (mea-
+sured by AUC) as a function of the image resolution
+(average IOD) when subsampling the ZJU dataset.
+
+phenomena as non-frontality, bad illumination, facial
+expressions, etc.
+State-of-the-art on two standard datasets was
+achieved using the robust landmark detector fol-
+lowed by a simple eye blink detection based on the
+SVM. The algorithm runs in real-time, since the ad-
+ditional computational costs for the eye blink detec-
+tion are negligible besides the real-time landmark de-
+tectors.
+The proposed SVM method that uses a temporal
+window of the eye aspect ratio (EAR), outperforms
+the EAR thresholding. On the other hand, the thresh-
+olding is usable as a single image classiﬁer to detect
+the eye state, in case that a longer sequence is not
+available.
+We see a limitation that a ﬁxed blink duration for
+all subjects was assumed, although everyone’s blink
+lasts differently. The results could be improved by an
+adaptive approach. Another limitation is in the eye
+opening estimate. While EAR is estimated from a 2D
+image, it is fairly insensitive to a head orientation, but
+may lose discriminability for out of plane rotations.
+A solution might be to deﬁne the EAR in 3D. There
+are landmark detectors that estimate a 3D pose (po-
+sition and orientation) of a 3D model of landmarks,
+e.g. [1, 3].
+
+Acknowledgment
+
+The research was supported by CTU student grant
+SGS15/155/OHK3/2T/13.
+
+[16] X. Xiong and F. De la Torre. Supervised descent
+methods and its applications to face alignment. In
+Proc. CVPR, 2013. 2, 3, 4, 5
+[17] Z. Yan, L. Hu, H. Chen, and F. Lu. Computer vision
+syndrome: A widely spreading but largely unknown
+epidemic among computer users. Computers in Hu-
+man Behaviour, (24):2026–2042, 2008. 1
+[18] F. Yang, X. Yu, J. Huang, P. Yang, and D. Metaxas.
+Robust eyelid tracking for fatigue detection. In ICIP,
+2012. 1
+[19] S. Zafeiriou, G. Tzimiropoulos, and M. Pantic. The
+300 videos in the wild (300-VW) facial landmark
+tracking in-the-wild challenge.
+In ICCV Work-
+
+shop, 2015. http://ibug.doc.ic.ac.uk/
+resources/300-VW/. 3
+
+References
+
+[1] A. Asthana, S. Zafeoriou, S. Cheng, and M. Pantic.
+Incremental face alignment in the wild. In Confer-
+ence on Computer Vision and Pattern Recognition,
+2014. 1, 2, 3, 4, 5, 7
+[2] L. M. Bergasa, J. Nuevo, M. A. Sotelo, and
+M. Vazquez. Real-time system for monitoring driver
+vigilance. In IEEE Intelligent Vehicles Symposium,
+2004. 1
+[3] J. Cech, V. Franc, and J. Matas. A 3D approach to
+facial landmarks: Detection, reﬁnement, and track-
+ing.
+In Proc. International Conference on Pattern
+Recognition, 2014. 7
+[4] M. Chau and M. Betke. Real time eye tracking and
+blink detection with USB cameras. Technical Report
+2005-12, Boston University Computer Science, May
+2005. 1
+[5] T. Danisman, I. Bilasco, C. Djeraba, and N. Ihad-
+dadene. Drowsy driver detection system using eye
+blink patterns.
+In Machine and Web Intelligence
+(ICMWI), Oct 2010. 1, 6, 7
+[6] H. Dinh, E. Jovanov, and R. Adhami. Eye blink
+detection using intensity vertical projection. In In-
+ternational Multi-Conference on Engineering and
+Technological Innovation, IMETI 2012. 1
+[7] M. Divjak and H. Bischof. Eye blink based fa-
+tigue detection for prevention of computer vision
+syndrome. In IAPR Conference on Machine Vision
+Applications, 2009. 1
+[8] T. Drutarovsky and A. Fogelton. Eye blink detec-
+tion using variance of motion vectors. In Computer
+Vision - ECCV Workshops. 2014. 1, 2, 5, 6, 7
+[9] W. H. Lee, E. C. Lee, and K. E. Park. Blink detec-
+tion robust to various facial poses. Journal of Neu-
+roscience Methods, Nov. 2010. 1, 3, 6, 7
+[10] Medicton group. The system I4Control. http://
+
+www.i4tracking.cz/. 1
+
+[11] G. Pan, L. Sun, Z. Wu, and S. Lao. Eyeblink-based
+anti-spooﬁng in face recognition from a generic we-
+bcamera. In ICCV, 2007. 1, 2, 5
+[12] S. Ren, X. Cao, Y. Wei, and J. Sun. Face alignment
+at 3000 fps via regressing local binary features. In
+Proc. CVPR, 2014. 2
+[13] A. Sahayadhas, K. Sundaraj, and M. Murugappan.
+Detecting driver drowsiness based on sensors: A re-
+view. MDPI open access: sensors, 2012. 1
+[14] F. M. Sukno, S.-K. Pavani, C. Butakoff, and A. F.
+Frangi. Automatic assessment of eye blinking pat-
+terns through statistical shape models.
+In ICVS,
+2009. 1, 2
+[15] D. Torricelli, M. Goffredo, S. Conforto, and
+M. Schmid. An adaptive blink detector to initial-
+ize and update a view-basedremote eye gaze track-
+ing system in a natural scenario. Pattern Recogn.
+Lett., 30(12):1144–1150, Sept. 2009. 1
+
