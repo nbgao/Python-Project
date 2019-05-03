@@ -54,22 +54,22 @@ def downloadPicture(html, keyword, num):
 1 坦克
 2 装甲车
 3 军舰
-4 航空母舰
+4 航空母舰*
 5 潜艇
 6 战斗机
 7 直升机
-8 轰炸机
-9 士兵
+8 轰炸机*
+9 导弹发射车*
 '''
 if __name__ == '__main__':
-    start_time = time.time()
-    dict = ['坦克','装甲车','军舰','航空母舰','潜艇','战斗机','直升机','轰炸机','士兵']
-    dict = ['战斗机', '直升机', '轰炸机', '士兵']
-    # while True:
-    #     keyword = input('[INPUT]:请输入需要爬取图片的关键字：')
-    #     num = int(input('[INPUT]:请输入需要爬取图片的数量：'))
-    for keyword in dict:
-        num = 120
+    # start_time = time.time()
+    # dict = ['坦克','装甲车','军舰','航空母舰','潜艇','战斗机','直升机','轰炸机','导弹发射车']
+
+    while True:
+        keyword = input('[INPUT]:请输入需要爬取图片的关键字：')
+        num = int(input('[INPUT]:请输入需要爬取图片的数量：'))
+    # for keyword in dict:
+    #     num = 120   # 每一类别下载图片数量
 
         cnt = 0
         page = 1
@@ -90,5 +90,5 @@ if __name__ == '__main__':
             t3 = time.time()
             print('[INFO]:Page' + str(page+1) + '图片下载耗时：{:.3f}s'.format(t3-t2))
 
-    end_time = time.time()
-    print('[INFO]:总运行时间：{:.3f}s\n'.format(end_time - start_time))
+    # end_time = time.time()
+    # print('[INFO]:总运行时间：{:.3f}s\n'.format(end_time - start_time))
